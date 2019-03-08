@@ -1,0 +1,250 @@
+package com.sist.hd.viw;
+
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Arrays;
+import java.util.Currency;
+import java.util.Locale;
+import java.util.Scanner;
+
+import javax.swing.ComboBoxEditor;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+
+import com.sist.hd.ctrl.CartCtrl;
+import com.sist.hd.ctrl.OrderCtrl;
+import com.sist.hd.dao.OrderDAO;
+import java.awt.Color;
+
+public class CartView extends JPanel implements ActionListener {
+	private Object[][] data;
+	private String[] columnNames = { "품목", "방법", "가격" };
+	private DefaultTableModel tableModel;
+	public static JTable table;
+	public static JComboBox comboBox;
+	public static JComboBox comboBox_1;
+	private CartCtrl myList;
+	private MainFrame win;
+	public static String cartStr1;
+	public static String cartStr2;
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "CartView [data=" + Arrays.toString(data) + ", columnNames=" + Arrays.toString(columnNames)
+				+ ", tableModel=" + tableModel + ", myList=" + myList + ", win=" + win + "]";
+	}
+
+	/**
+	 * Create the panel.
+	 * 
+	 * @param win
+	 */
+	public CartView(MainFrame win) {
+		setBackground(Color.WHITE);
+		setFont(new Font("나눔고딕 ExtraBold", Font.BOLD, 13));
+		this.win = win;
+
+		myList = new CartCtrl();
+		myList.readFromCSV("src\\csv\\cartList.csv");
+		data = myList.convert2Data();
+		tableModel = new DefaultTableModel(data, columnNames) {
+			public boolean isCellEditable(int row, int column) { // 셀 내용 수정불가
+				return false;
+			}
+		};
+
+
+		String comboBoxT[] = { "1시", "2시", "3시", };
+		setLayout(null);
+		JComboBox comboBox = new JComboBox(comboBoxT);
+		comboBox.setBounds(248, 332, 80, 25);
+		comboBox.setFont(new Font("나눔고딕 ExtraBold", Font.BOLD, 13));
+		add(comboBox);
+
+		String comboBoxT_1[] = { "12시", "13시", "14시" };
+		JComboBox comboBox_1 = new JComboBox(comboBoxT_1);
+		comboBox_1.setBounds(248, 382, 80, 25);
+		comboBox_1.setFont(new Font("나눔고딕 ExtraBold", Font.BOLD, 13));
+		add(comboBox_1);
+		JButton btnHome = new JButton("HOME");
+		btnHome.setBounds(361, 0, 77, 30);
+		btnHome.setBackground(Color.DARK_GRAY);
+		btnHome.setForeground(Color.WHITE);
+		btnHome.setFont(new Font("나눔고딕 ExtraBold", Font.BOLD, 13));
+		btnHome.setBorderPainted(false);
+		add(btnHome);
+		btnHome.setBackground(Color.DARK_GRAY);
+		btnHome.setForeground(Color.WHITE);
+		btnHome.setBorderPainted(false);
+		table = new JTable(tableModel);
+		table.setFont(new Font("나눔고딕 ExtraBold", Font.BOLD, 13));
+		table.setAutoCreateRowSorter(true);
+		table.setShowVerticalLines(false); // 테이블 선 표시
+		table.setShowHorizontalLines(false);
+		JScrollPane scrollPane = new JScrollPane(table);
+		scrollPane.setBounds(92, 85, 267, 189);
+		add(scrollPane);
+		scrollPane.setPreferredSize(new Dimension(280, 150));
+
+		JLabel title1 = new JLabel("장바구니");
+		title1.setBounds(0, 2, 116, 23);
+		add(title1);
+		title1.setFont(new Font("나눔고딕 ExtraBold", Font.BOLD, 20));
+	
+		JLabel time1 = new JLabel("수거희망시간");
+		time1.setBounds(130, 387, 78, 15);
+		time1.setFont(new Font("나눔고딕 ExtraBold", Font.BOLD, 13));
+		add(time1);
+
+		JLabel time2 = new JLabel("배달희망시간");
+		time2.setBounds(130, 337, 78, 15);
+		add(time2);
+		time2.setFont(new Font("나눔고딕 ExtraBold", Font.BOLD, 13));
+
+		JButton btnRemove = new JButton("삭제");
+		btnRemove.setBounds(233, 284, 126, 23);
+		btnRemove.setFont(new Font("나눔고딕 ExtraBold", Font.BOLD, 13));
+		add(btnRemove);
+		btnRemove.setForeground(Color.WHITE);
+		btnRemove.setBackground(Color.DARK_GRAY);
+		btnRemove.setBorderPainted(false);
+
+		JLabel n5 = new JLabel();
+		n5.setBounds(92, 50, 137, 25);
+		add(n5);
+		n5.setFont(new Font("나눔고딕 ExtraBold", Font.BOLD, 18));
+		n5.setText(Currency.getInstance(Locale.KOREA).getSymbol() + CartCtrl.totalprice(table) + "원");
+		
+		JButton btnPay = new JButton("결제");
+		btnPay.setBounds(330, 446, 81, 23);
+		btnPay.setFont(new Font("나눔고딕 ExtraBold", Font.BOLD, 13));
+		add(btnPay);
+		btnPay.setForeground(Color.WHITE);
+		btnPay.setBackground(Color.DARK_GRAY);
+		btnPay.setBorderPainted(false);
+		JButton Con = new JButton("계속담기");
+		Con.setBounds(92, 284, 126, 23);
+		Con.setFont(new Font("나눔고딕 ExtraBold", Font.BOLD, 13));
+		add(Con);
+		Con.setForeground(Color.WHITE);
+		Con.setBackground(Color.DARK_GRAY);
+		Con.setBorderPainted(false);
+
+		Con.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				OrderView order = null;
+				try {
+					order = new OrderView(win);
+				} catch (FileNotFoundException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				win.change("order", order);
+			}
+		});
+
+		btnPay.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				cartStr1 = comboBox.getSelectedItem().toString();
+				cartStr2 = comboBox_1.getSelectedItem().toString();
+				CartCtrl.saveToCSV(table, "src\\csv\\cartList.csv");
+				// 저장
+
+				PayView pay = new PayView(win);
+				win.change("pay", pay);
+			}
+		});
+		btnPay.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+			}
+
+		});
+		btnRemove.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String command = e.getActionCommand();
+				if (command.equals("삭제")) { // 삭제 클릭시 동작
+					System.out.println("---------삭제---------");
+					int row = table.getSelectedRow();
+					if (row == -1)
+						JOptionPane.showMessageDialog(win, "삭제 할 품목을 선택하세요.", null, JOptionPane.WARNING_MESSAGE);
+
+					else {
+						DefaultTableModel model = (DefaultTableModel) table.getModel();
+						model.removeRow(row);
+						n5.setText(Currency.getInstance(Locale.KOREA).getSymbol() + CartCtrl.totalprice(table)); // 합산가격
+																													// 업데이트
+						CartCtrl.cartList2.clear();
+						for (int i = 0; i < model.getRowCount(); i++) {
+							String str = "";
+							str += ((String) model.getValueAt(i, 0)).trim() + ",";
+							str += ((String) model.getValueAt(i, 1)).trim() + ",";
+							str += model.getValueAt(i, 2);
+							CartCtrl.cartList2.add(str);
+						}
+						System.out.println("cartList2 : " + CartCtrl.cartList2);
+					}
+				}
+			}
+		});
+		table.addMouseListener(new MouseListener() {
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				// TODO Auto-generated method stub
+				int row = table.getSelectedRow();
+				TableModel model = table.getModel();
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseClicked(MouseEvent e) {
+			}
+		});
+		btnHome.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				MainView main = new MainView(win);
+				win.change("main", main);
+			}
+		});
+
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		// TODO Auto-generated method stub
+	}
+}
